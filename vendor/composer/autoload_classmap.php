@@ -13,6 +13,7 @@ return array(
     'App\\Models\\Redirect' => $baseDir . '/app/Models/Redirect.php',
     'App\\Models\\User' => $baseDir . '/app/Models/User.php',
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',
+    'App\\Services\\URL\\CheckURLSafetyService' => $baseDir . '/app/Services/URL/CheckURLSafetyService.php',
     'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
     'Brick\\Math\\BigDecimal' => $vendorDir . '/brick/math/src/BigDecimal.php',
     'Brick\\Math\\BigInteger' => $vendorDir . '/brick/math/src/BigInteger.php',
