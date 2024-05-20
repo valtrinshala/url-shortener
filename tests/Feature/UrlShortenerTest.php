@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Redirect;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -11,6 +12,7 @@ it('shortens a URL', function () {
     ]);
 
     $response->assertStatus(200);
+
     $response->assertJsonStructure([
         'url',
         'short_url'
@@ -24,12 +26,12 @@ it('shortens a URL', function () {
 it('returns existing short URL for duplicate', function () {
     $url = 'https://example.com';
 
-    \DB::table('redirects')->insert([
-        'url' => $url,
-        'hash' => 'abc123',
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+    Redirect::factory()
+        ->state([
+            'url' => $url,
+            'hash' => 'abc123'
+        ])
+        ->create();
 
     $response = $this->postJson('/api/v1/url/shorten', [
         'url' => $url
@@ -53,7 +55,7 @@ it('does not shorten an unsafe URL', function () {
 });
 
 it('redirects to original URL', function () {
-    $redirect = Redirect::create(['url' => 'https://example.com']);
+    $redirect = Redirect::factory()->customUrl('https://example.com')->create();
     $hash = $redirect->hash;
 
     $response = $this->get("/$hash");
@@ -79,29 +81,19 @@ it('returns error for invalid URL format', function () {
 });
 
 it('ensures hash is unique', function () {
-    $url1 = 'https://example.com';
-    $url2 = 'https://example2.com';
+    $hash = 'uniquehash';
 
-    \DB::table('redirects')->insert([
-        'url' => $url1,
-        'hash' => 'uniquehash',
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+    Redirect::factory()->state([
+        'url' => 'https://example.com',
+        'hash' => $hash
+    ])->create();
 
-    try {
-        \DB::table('redirects')->insert([
-            'url' => $url2,
-            'hash' => 'uniquehash',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-    } catch (\Illuminate\Database\QueryException $exception) {
-        $this->assertStringContainsString('UNIQUE constraint failed', $exception->getMessage());
-        return;
-    }
+    $this->expectException(QueryException::class);
 
-    $this->fail('Expected QueryException not thrown');
+    Redirect::factory()->state([
+        'url' => 'https://example2.com',
+        'hash' => $hash,
+    ])->create();
 });
 
 it('shortens URLs with different schemes', function () {
@@ -115,6 +107,7 @@ it('shortens URLs with different schemes', function () {
         ]);
 
         $response->assertStatus(200);
+
         $this->assertDatabaseHas('redirects', [
             'url' => $url
         ]);

@@ -17,10 +17,12 @@ class Redirect extends Model
         parent::booted();
 
         self::creating(function (Redirect $redirect) {
+            if($redirect->hash) return;
+
             $hash = Str::random(6);
 
             while (Redirect::query()->where('hash', $hash)->exists()) {
-                $hash = Str::random(10);
+                $hash = Str::random(6);
             }
 
             $redirect->hash = $hash;

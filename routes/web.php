@@ -12,13 +12,6 @@ Route::get('/', function () {
 });
 
 
-Route::get('/{hash}', function(string $hash){
-    $route = \App\Models\Redirect::where('hash', $hash)->firstOrFail();
-    return redirect()->to($route->url);
-});
+Route::get('/{redirect:hash}', [\App\Http\Controllers\Web\RedirectController::class, 'redirect'])->name('redirects.redirect');
 
-
-Route::get('/{subfolder}/{hash}', function (string $subfolder, string $hash) {
-    $route = \App\Models\Redirect::where('hash', $hash)->where('subfolder', $subfolder)->firstOrFail();
-    return redirect()->to($route->url);
-})->where('subfolder', '.*')->where('hash', '[a-zA-Z0-9]{6}');
+Route::get('/{subfolder}/{hash}', [\App\Http\Controllers\Web\RedirectController::class, 'redirectWithSubfolder'])->name('redirects.redirectWithSubfolder');

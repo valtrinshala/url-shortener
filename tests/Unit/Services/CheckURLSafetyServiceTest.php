@@ -10,26 +10,9 @@ test('isSecure returns true for safe URL', function () {
         'https://safebrowsing.googleapis.com/*' => Http::response(['matches' => []], 200),
     ]);
 
-    $isSecure = function ($url) {
-        $response = Http::post('https://safebrowsing.googleapis.com/v4/threatMatches:find', [
-            'client' => [
-                'clientId' => 'vsh',
-                'clientVersion' => '1.5.2'
-            ],
-            'threatInfo' => [
-                'threatTypes' => ['MALWARE', 'SOCIAL_ENGINEERING'],
-                'platformTypes' => ['WINDOWS'],
-                'threatEntryTypes' => ['URL'],
-                'threatEntries' => [
-                    ['url' => $url]
-                ]
-            ],
-        ]);
+    $isSecure = (new \App\Services\URL\CheckURLSafetyService())->isSecure('https://example.com');
 
-        return empty($response->json('matches'));
-    };
-
-    expect($isSecure('https://example.com'))->toBeTrue();
+    expect($isSecure)->toBeTrue();
 });
 
 test('isSecure returns false for unsafe URL', function () {
@@ -37,25 +20,7 @@ test('isSecure returns false for unsafe URL', function () {
         'https://safebrowsing.googleapis.com/*' => Http::response(['matches' => [['threatType' => 'MALWARE']]], 200),
     ]);
 
-    $isSecure = function ($url) {
-        $response = Http::post('https://safebrowsing.googleapis.com/v4/threatMatches:find', [
-            'client' => [
-                'clientId' => 'vsh',
-                'clientVersion' => '1.5.2'
-            ],
-            'threatInfo' => [
-                'threatTypes' => ['MALWARE', 'SOCIAL_ENGINEERING'],
-                'platformTypes' => ['WINDOWS'],
-                'threatEntryTypes' => ['URL'],
-                'threatEntries' => [
-                    ['url' => $url]
-                ]
-            ],
-        ]);
+    $isSecure = (new \App\Services\URL\CheckURLSafetyService())->isSecure('http://unsafe-url.com');
 
-
-        return empty($response->json('matches'));
-    };
-
-    expect($isSecure('http://unsafe-url.com'))->toBeFalse();
+    expect($isSecure)->toBeFalse();
 });
