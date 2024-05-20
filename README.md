@@ -76,7 +76,7 @@ Make sure you have the following installed on your machine:
     ```
 
 11. **Access the application:**
-    Open your browser and go to [https://localhost:8000](https://localhost:8000)
+    Open your browser and go to [http://localhost:8000](https://localhost:8000)
 
 ## Additional Information
 
