@@ -12,20 +12,20 @@ class ShortenController extends Controller
     function __invoke(ShortenRequest $request, CheckURLSafetyService $service)
     {
         $url = $request->get('url');
-        $subfolder = $request->get('subfolder'); // Get the subfolder from the request
+        $subfolder = $request->get('subfolder'); 
 
         if (! $service->isSecure($url)) {
             return response()->json(['message' => 'The URL is not safe!'], 400);
         }
 
         $redirect = Redirect::query()->firstOrCreate(
-            ['url' => $url, 'subfolder' => $subfolder], // Include subfolder in the query
+            ['url' => $url, 'subfolder' => $subfolder], 
             ['url' => $url]
         );
 
         return [
             'url' => $url,
-            'short_url' => url($subfolder ? "$subfolder/$redirect->hash" : $redirect->hash), // Handle subfolder in the short URL
+            'short_url' => url($subfolder ? "$subfolder/$redirect->hash" : $redirect->hash), 
         ];
     }
 }
