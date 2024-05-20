@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->string('url', 500);
             $table->string('hash', 6)->unique();
+            $table->string('subfolder')->nullable();
             $table->timestamps();
         });
     }

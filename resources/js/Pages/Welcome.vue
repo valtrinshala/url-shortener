@@ -1,56 +1,60 @@
 <script setup>
-import {Head} from '@inertiajs/vue3';
-import {ref} from "vue";
+import { Head } from '@inertiajs/vue3';
+import { ref } from "vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 import TextInput from "@/Components/TextInput.vue";
 import LoaderIcon from "@/Components/LoaderIcon.vue";
 
-
 defineProps({
-    laravelVersion: {
-        type: String,
-        required: true,
-    },
-    phpVersion: {
-        type: String,
-        required: true,
-    },
+  laravelVersion: {
+    type: String,
+    required: true,
+  },
+  phpVersion: {
+    type: String,
+    required: true,
+  },
 });
 
 const url = ref('');
-
+const subfolder = ref(''); // New subfolder input
 const errors = ref({
-    url: [],
+  url: [],
+  subfolder: [], // Handle errors for subfolder
 });
 
 const isLoading = ref(false);
 
 const submit = () => {
-    errors.value.url = [];
-    isLoading.value = true;
+  errors.value.url = [];
+  errors.value.subfolder = []; // Clear errors for subfolder
+  isLoading.value = true;
 
-    axios.post('/api/v1/url/shorten', {
-        url: url.value
-    })
-        .then(response => {
-            window.open(response.data.short_url, '_blank');
-            url.value = '';
-        })
-        .catch(error => {
-            const response = error.response;
+  axios.post('/api/v1/url/shorten', {
+    url: url.value,
+    subfolder: subfolder.value // Send subfolder value
+  })
+      .then(response => {
+        console.log('Response:', response.data); // Log the response
 
-            if (response.status === 422) {
-                errors.value = response.data.errors;
-            }
+        window.open(response.data.short_url, '_blank');
+        url.value = '';
+        subfolder.value = ''; // Reset subfolder input
+      })
+      .catch(error => {
+        const response = error.response;
 
-            if (response.status === 400) {
-                errors.value.url.push(response.data.message);
-            }
-        }).finally(() => {
-        isLoading.value = false;
-    });
+        if (response.status === 422) {
+          errors.value = response.data.errors;
+        }
 
+        if (response.status === 400) {
+          errors.value.url.push(response.data.message);
+        }
+      }).finally(() => {
+    isLoading.value = false;
+  });
 }
 </script>
 
@@ -100,6 +104,16 @@ const submit = () => {
                                 </div>
                             </div>
 
+                          <InputLabel>Subfolder</InputLabel> <!-- New label for subfolder -->
+                          <div class="mt-2">
+                            <TextInput class="w-full" placeholder="Subfolder (optional)" v-model="subfolder" />
+                          </div>
+                          <div class="mt-2">
+                            <ul class="text-white">
+                              <li v-for="error in errors.subfolder" :key="error">{{ error }}</li>
+                            </ul>
+                          </div>
+
                             <div>
                                 <div class="mt-6 flex items-center justify-end gap-x-6">
                                     <PrimaryButton :disabled="isLoading">
@@ -111,6 +125,7 @@ const submit = () => {
                                     </PrimaryButton>
                                 </div>
                             </div>
+
 
                             <div>
                                 <ul class="mt-8 text-white space-y-2">

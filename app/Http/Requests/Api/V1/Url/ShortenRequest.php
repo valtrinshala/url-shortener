@@ -14,7 +14,8 @@ class ShortenRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'url' => 'required|url|max:255',
+            'url' => 'required|url',
+            'subfolder' => 'nullable|string|max:255'
         ];
     }
 }
