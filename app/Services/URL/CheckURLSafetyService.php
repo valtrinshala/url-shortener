@@ -2,12 +2,17 @@
 
 namespace App\Services\URL;
 
+use App\Models\MalwareDomain;
 use Illuminate\Support\Facades\Http;
 
 class CheckURLSafetyService
 {
     public function isSecure(string $url): bool
     {
+        if (MalwareDomain::query()->where('url', $url)->exists()) {
+            return false;
+        }
+
         $key = config('services.google.safe_browsing_api_key');
 
         $matches = Http::post("https://safebrowsing.googleapis.com/v4/threatMatches:find?key={$key}", [
@@ -17,7 +22,13 @@ class CheckURLSafetyService
             ->throw()
             ->json('matches');
 
-        return blank($matches);
+        $isMalware = filled($matches);
+
+        if ($isMalware) {
+            MalwareDomain::query()->create(['url' => $url]);
+        }
+
+        return !$isMalware;
     }
 
     protected function threatInfo(string $url): array

@@ -1,8 +1,10 @@
 <?php
 
+use App\Models\MalwareDomain;
 use App\Models\Redirect;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 
 uses(RefreshDatabase::class);
 
@@ -81,7 +83,7 @@ it('returns error for invalid URL format', function () {
 });
 
 it('ensures hash is unique', function () {
-    $hash = 'uniquehash';
+    $hash = '123456';
 
     Redirect::factory()->state([
         'url' => 'https://example.com',
@@ -112,4 +114,24 @@ it('shortens URLs with different schemes', function () {
             'url' => $url
         ]);
     }
+});
+
+it('isSecure function correctly identifies malicious URLs with query parameters', function () {
+    $maliciousUrl = 'http://malware.testing.google.test/testing/malware/';
+    $maliciousUrlWithQuery = 'http://malware.testing.google.test/testing/malware/?1';
+
+    MalwareDomain::create(['url' => $maliciousUrl]);
+    MalwareDomain::create(['url' => $maliciousUrlWithQuery]);
+
+    $checkService = new \App\Services\URL\CheckURLSafetyService();
+
+
+    $this->assertFalse($checkService->isSecure($maliciousUrl));
+    $this->assertFalse($checkService->isSecure($maliciousUrlWithQuery));
+
+    Http::fake([
+        'https://safebrowsing.googleapis.com/*' => Http::response(['matches' => []], 200),
+    ]);
+
+    $this->assertTrue($checkService->isSecure('https://example.com'));
 });
